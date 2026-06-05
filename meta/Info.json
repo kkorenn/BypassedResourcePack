@@ -1,0 +1,9 @@
+{
+  "Id": "BypassedResourcePack",
+  "DisplayName": "Bypassed Resource Pack",
+  "Author": "koren",
+  "Version": "1.0.0",
+  "AssemblyName": "BypassedResourcePack.dll",
+  "EntryMethod": "BypassedResourcePack.Main.Load",
+  "HomePage": "https://github.com/kkorenn/BypassedResourcePack"
+}
