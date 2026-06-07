@@ -1,6 +1,6 @@
 using HarmonyLib;
 
-namespace BypassedResourcePack
+namespace RestrictedResourcePack
 {
     // Feeds OverlayerStats. The overlay itself never hides (Overlayer model: it swaps
     // PlayingText/NotPlayingText by IsPlaying), so these only drive run state:

@@ -8,7 +8,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace BypassedResourcePack
+namespace RestrictedResourcePack
 {
     // ScreenSpace overlay canvas (1920x1080 reference). Modelled on Overlayer's OverlayerText:
     // objects stay active and each frame Text.text = IsPlaying ? PlayingText : NotPlayingText.
@@ -28,7 +28,7 @@ namespace BypassedResourcePack
             public Func<string> Playing;     // content while a run is live
         }
 
-        private static readonly Color ShadowColor = new Color(0f, 0f, 0f, 0.35f);
+        private static readonly Color ShadowColor = new Color(1f, 1f, 1f, 0.35f);
         private static readonly Vector2 ShadowOffset = new Vector2(2.5f, -2.5f);
         private static readonly Regex ColorTagRegex = new Regex(@"</?color[^>]*>", RegexOptions.Compiled);
         private static string StripColor(string s) =>
@@ -117,7 +117,7 @@ namespace BypassedResourcePack
         {
             if (built && root != null) return;
 
-            root = new GameObject("BypassedResourcePack.Overlayer");
+            root = new GameObject("RestrictedResourcePack.Overlayer");
             UnityEngine.Object.DontDestroyOnLoad(root);
 
             Canvas canvas = root.AddComponent<Canvas>();
@@ -157,7 +157,7 @@ namespace BypassedResourcePack
             Vector2 pivot = new Vector2(pivotX, pivotY);
 
             TextMeshProUGUI shadow = MakeText(name + "_Shadow", font, align, fontSize, lineSpacing, ShadowColor, pivot);
-            TextMeshProUGUI t = MakeText(name, font, align, fontSize, lineSpacing, Color.white, pivot);
+            TextMeshProUGUI t = MakeText(name, font, align, fontSize, lineSpacing, Color.black, pivot);
 
             panels.Add(new Panel { Text = t, Shadow = shadow, Cfg = cfg, Playing = playing });
         }
@@ -227,12 +227,12 @@ namespace BypassedResourcePack
         // Content builders (PlayingText)
         // =====================================================================
 
-        private const string JFail = "C759FF";
-        private const string JTooEarly = "FF3838";
-        private const string JVeryEarly = "FF704F";
-        private const string JEarlyPerf = "A1FF4F";
-        private const string JPerfect = "61FF4F";
-        private const string Gold = "FFD700";
+        private const string JFail = "38A600";
+        private const string JTooEarly = "00C7C7";
+        private const string JVeryEarly = "008FB0";
+        private const string JEarlyPerf = "5E00B0";
+        private const string JPerfect = "9E00B0";
+        private const string Gold = "0028FF";
 
         private static string BuildJudgements()
         {
@@ -251,7 +251,7 @@ namespace BypassedResourcePack
         private static string AccColor(double value)
         {
             string f = OverlayerStats.F(value, 3);
-            return f == "100.000" ? Gold : OverlayerStats.ColorRange(value, 99.9995, 100, "FFFFFF", "33BB33");
+            return f == "100.000" ? Gold : OverlayerStats.ColorRange(value, 99.9995, 100, "000000", "CC44CC");
         }
 
         private static string BuildTopInfo()
@@ -261,13 +261,13 @@ namespace BypassedResourcePack
             double maxacc = OverlayerStats.MaxAcc();
             List<string> lines = new List<string>(4);
             if (s.LineXAcc)
-                lines.Add("<color=#99FF99>XAcc</color> | <color=#" + AccColor(xacc) + ">" + OverlayerStats.F(xacc, 3) + "</color>");
+                lines.Add("<color=#660066>XAcc</color> | <color=#" + AccColor(xacc) + ">" + OverlayerStats.F(xacc, 3) + "</color>");
             if (s.LineMaxAcc)
-                lines.Add("<color=#77FF77>MaxAcc</color> | <color=#" + AccColor(maxacc) + ">" + OverlayerStats.F(maxacc, 3) + "</color>");
+                lines.Add("<color=#880088>MaxAcc</color> | <color=#" + AccColor(maxacc) + ">" + OverlayerStats.F(maxacc, 3) + "</color>");
             if (s.LineProgress)
-                lines.Add("<color=#33FF33>Progress</color> | " + OverlayerStats.BetterProgress());
+                lines.Add("<color=#CC00CC>Progress</color> | " + OverlayerStats.BetterProgress());
             if (s.LineTile)
-                lines.Add("<color=#11FF11>" + OverlayerStats.CurTile + "</color> / " + OverlayerStats.TotalTile);
+                lines.Add("<color=#EE00EE>" + OverlayerStats.CurTile + "</color> / " + OverlayerStats.TotalTile);
             return string.Join("\n", lines.ToArray());
         }
 
@@ -276,25 +276,25 @@ namespace BypassedResourcePack
             Settings s = Main.Settings;
             List<string> lines = new List<string>(4);
             if (s.LineRuns)
-                lines.Add("<color=#9999FF>Runs To Here</color> | " + OverlayerStats.RunsToHere());
+                lines.Add("<color=#666600>Runs To Here</color> | " + OverlayerStats.RunsToHere());
             if (s.LineTileBpm)
-                lines.Add("<color=#6666FF>TileBPM</color> | " + OverlayerStats.F(OverlayerStats.TileBpm, 2));
+                lines.Add("<color=#999900>TileBPM</color> | " + OverlayerStats.F(OverlayerStats.TileBpm, 2));
             if (s.LineCurBpm)
-                lines.Add("<color=#3333FF>CurBPM</color> | " + OverlayerStats.F(OverlayerStats.CurBpm, 2));
+                lines.Add("<color=#CCCC00>CurBPM</color> | " + OverlayerStats.F(OverlayerStats.CurBpm, 2));
             if (s.LineKps)
-                lines.Add("<color=#0000FF>KPS</color> | " + Mathf.CeilToInt((float)OverlayerStats.RecKPSWithoutPitch).ToString(CultureInfo.InvariantCulture));
+                lines.Add("<color=#FFFF00>KPS</color> | " + Mathf.CeilToInt((float)OverlayerStats.RecKPSWithoutPitch).ToString(CultureInfo.InvariantCulture));
             return string.Join("\n", lines.ToArray());
         }
 
         private static string BuildTabub()
         {
-            return "<color=#7700FF>Tabub :D</color>\n\n" + OverlayerStats.Tabub();
+            return "<color=#88FF00>Tabub :D</color>\n\n" + OverlayerStats.Tabub();
         }
 
         private static string BuildCombo()
         {
             float pop = OverlayerStats.ComboPopPercent();
-            string cr = OverlayerStats.ColorRange(OverlayerStats.Combo, 0, 500, "FF5555", "55FF55");
+            string cr = OverlayerStats.ColorRange(OverlayerStats.Combo, 0, 500, "00AAAA", "AA00AA");
             return "<size=" + pop.ToString("0", CultureInfo.InvariantCulture) +
                    "%><color=#" + cr + ">" + OverlayerStats.Combo + "</color></size>\n<size=60>Combo</size>";
         }

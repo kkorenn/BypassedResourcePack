@@ -1,7 +1,7 @@
 using System;
 using UnityModManagerNet;
 
-namespace BypassedResourcePack
+namespace RestrictedResourcePack
 {
     // Per-panel overlay customization (position/scale/visibility/not-playing text).
     [Serializable]
@@ -54,8 +54,8 @@ namespace BypassedResourcePack
         public bool HideJudgmentText = true;     // "Perfect!" / "Pure Perfect!" popups
         public bool HideMissIndicators = true;
         public bool PlanetColorOn = true;
-        public string Planet1Hex = "55FF55";     // red planet body
-        public string Planet2Hex = "444444";     // blue planet body
+        public string Planet1Hex = "AA00AA";     // red planet body
+        public string Planet2Hex = "BBBBBB";     // blue planet body
         public bool HideTail = true;
         public bool HideRing = true;
 

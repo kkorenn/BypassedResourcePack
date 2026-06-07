@@ -7,7 +7,7 @@ using System.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace BypassedResourcePack
+namespace RestrictedResourcePack
 {
     // Minimal Discord desktop IPC client for auto-deafen.
     //

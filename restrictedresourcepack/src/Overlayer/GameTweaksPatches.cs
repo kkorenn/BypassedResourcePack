@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using HarmonyLib;
 using UnityEngine;
 
-namespace BypassedResourcePack
+namespace RestrictedResourcePack
 {
     // Game-visual tweaks ported from AdofaiTweaks (HideUiElements + PlanetColor):
     //  - hide judgement text popups, hide miss indicators
@@ -11,11 +11,11 @@ namespace BypassedResourcePack
     internal static class GameTweaksPatches
     {
         private static readonly Vector3 OffScreen = new Vector3(123456f, 123456f, 123456f);
-        private static readonly Color Transparent = new Color(0f, 0f, 0f, 0f);
+        private static readonly Color Transparent = new Color(1f, 1f, 1f, 0f);
 
         private static bool TryHex(string hex, out Color color)
         {
-            color = Color.white;
+            color = Color.black;
             if (string.IsNullOrEmpty(hex)) return false;
             return ColorUtility.TryParseHtmlString(hex[0] == '#' ? hex : "#" + hex, out color);
         }

@@ -10,7 +10,7 @@ using System.Threading;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace BypassedResourcePack
+namespace RestrictedResourcePack
 {
     internal static class DiscordLocalOAuthServer
     {

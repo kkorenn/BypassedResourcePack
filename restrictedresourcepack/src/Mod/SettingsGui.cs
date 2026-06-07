@@ -3,7 +3,7 @@ using System.Globalization;
 using UnityEngine;
 using UnityModManagerNet;
 
-namespace BypassedResourcePack
+namespace RestrictedResourcePack
 {
     internal static class SettingsGui
     {
@@ -59,7 +59,7 @@ namespace BypassedResourcePack
                 expandStyle = new GUIStyle();
                 expandStyle.fixedWidth = 10f;
                 expandStyle.fontSize = 15;
-                expandStyle.normal.textColor = Color.white;
+                expandStyle.normal.textColor = Color.black;
                 expandStyle.margin = new RectOffset(4, 2, 6, 6);
             }
             if (enableStyle == null)

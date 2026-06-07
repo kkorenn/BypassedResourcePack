@@ -1,0 +1,9 @@
+{
+  "Id": "RestrictedResourcePack",
+  "DisplayName": "Restricted Resource Pack",
+  "Author": "koren",
+  "Version": "1.0.0",
+  "AssemblyName": "RestrictedResourcePack.dll",
+  "EntryMethod": "RestrictedResourcePack.Main.Load",
+  "HomePage": "https://github.com/kkorenn/RestrictedResourcePack"
+}

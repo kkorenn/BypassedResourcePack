@@ -9,7 +9,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <AssemblyName>BypassedResourcePack</AssemblyName>
+    <AssemblyName>RestrictedResourcePack</AssemblyName>
     <OutputType>Library</OutputType>
     <LangVersion>latest</LangVersion>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
@@ -46,9 +46,9 @@
 
     <DistDir>$(MSBuildProjectDirectory)/dist</DistDir>
     <StageRoot>$(BuildRoot)/stage</StageRoot>
-    <StageDir>$(StageRoot)/BypassedResourcePack</StageDir>
-    <ZipPath>$(DistDir)/BypassedResourcePack.zip</ZipPath>
-    <Dest Condition="'$(Dest)'==''">$(Game)/Mods/BypassedResourcePack</Dest>
+    <StageDir>$(StageRoot)/RestrictedResourcePack</StageDir>
+    <ZipPath>$(DistDir)/RestrictedResourcePack.zip</ZipPath>
+    <Dest Condition="'$(Dest)'==''">$(Game)/Mods/RestrictedResourcePack</Dest>
   </PropertyGroup>
 
   <ItemGroup>

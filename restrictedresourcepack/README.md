@@ -1,4 +1,4 @@
-# BypassedResourcePack
+# RestrictedResourcePack
 
 Minimal ADOFAI Unity Mod Manager skeleton, based on the structure used by `KorenResourcePack`.
 
@@ -48,8 +48,8 @@ Discord's `rpc` and `rpc.voice.write` scopes require approved partner access or 
 ## File tree
 
 ```text
-BypassedResourcePack/
-├── BypassedResourcePack.csproj
+RestrictedResourcePack/
+├── RestrictedResourcePack.csproj
 ├── meta/
 │   └── Info.json
 ├── Fonts/
@@ -87,8 +87,8 @@ dotnet build -c Release
 Outputs:
 
 ```text
-build/bin/Release/netstandard2.1/BypassedResourcePack.dll
-dist/BypassedResourcePack.zip
+build/bin/Release/netstandard2.1/RestrictedResourcePack.dll
+dist/RestrictedResourcePack.zip
 ```
 
 The zip and install both include the `localization/` folder next to the dll.

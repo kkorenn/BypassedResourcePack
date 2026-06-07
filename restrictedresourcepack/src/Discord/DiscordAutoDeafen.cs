@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityModManagerNet;
 
-namespace BypassedResourcePack
+namespace RestrictedResourcePack
 {
     internal static class DiscordAutoDeafen
     {

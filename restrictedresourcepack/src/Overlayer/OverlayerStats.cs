@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
 
-namespace BypassedResourcePack
+namespace RestrictedResourcePack
 {
     // Value brain, ported 1:1 from the customer's Overlayer tags + JS scripts.
     //
@@ -247,7 +247,7 @@ namespace BypassedResourcePack
             for (int i = 0; i < 100; i++)
             {
                 bool on = start <= i && end >= i;
-                sb.Append("<size=40><color=#").Append(on ? "00FF00" : "FF0000").Append(">I</color></size>");
+                sb.Append("<size=40><color=#").Append(on ? "FF00FF" : "00FFFF").Append(">I</color></size>");
             }
             sb.Append(']');
             pbCache = sb.ToString();

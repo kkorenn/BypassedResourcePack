@@ -2,11 +2,11 @@ using System;
 using HarmonyLib;
 using UnityModManagerNet;
 
-namespace BypassedResourcePack
+namespace RestrictedResourcePack
 {
     public static class Main
     {
-        private const string HarmonyId = "koren.bypassedresourcepack";
+        private const string HarmonyId = "koren.restrictedresourcepack";
 
         internal static UnityModManager.ModEntry Mod;
         internal static Settings Settings;
@@ -38,7 +38,7 @@ namespace BypassedResourcePack
             harmony = new Harmony(HarmonyId);
             harmony.PatchAll(typeof(Main).Assembly);
 
-            Log.Info("BypassedResourcePack loaded.");
+            Log.Info("RestrictedResourcePack loaded.");
             return true;
         }
 
@@ -51,7 +51,7 @@ namespace BypassedResourcePack
                 OverlayerOverlay.Hide();
                 OverlayerOverlay.RestoreTitle();
             }
-            Log.Info(value ? "BypassedResourcePack enabled." : "BypassedResourcePack disabled.");
+            Log.Info(value ? "RestrictedResourcePack enabled." : "RestrictedResourcePack disabled.");
             return true;
         }
 
@@ -69,7 +69,7 @@ namespace BypassedResourcePack
                 DiscordAutoDeafen.Stop();
                 OverlayerOverlay.Destroy();
                 harmony?.UnpatchAll(HarmonyId);
-                Log.Info("BypassedResourcePack unloaded.");
+                Log.Info("RestrictedResourcePack unloaded.");
             }
             catch (Exception ex)
             {
