@@ -1,0 +1,153 @@
+src/Overlayer/OverlayerStats.cs
+  s_989dfd6b107eaf::t_eaa86aeba84aa6 306,342,355,357-358,364-365,367
+  s_602244f602f38c::t_42031351fdc8cb 103,311,314
+  s_602244f602f38c::t_9e3c061ad67a2f 312-313,315-321
+  s_d2810fb731aac1::t_4b7621fff0ea28 11-12,20-21,24,28-46,48,98,114
+restrictedresourcepack/src/Overlayer/OverlayerOverlay.cs
+  s_1a2cd77bb41279::t_ef445ba2ea7eb5 11,120
+  s_1a2cd77bb41279::t_30497bc7e7bca2 31,160,230-235,254,264,266,268,270,279,281,283,285,291,297
+  s_1a2cd77bb41279::t_a695ef996c94ca 1-10,12-30,32-119,121-159,161-229,236-253,255-263,265,267,269,271-278,280,282,284,286-290,292-296,298-302
+src/Overlayer/OverlayerPatches.cs
+  s_989dfd6b107eaf::t_fe20e9afaa6ece 64-82,88
+  s_d2810fb731aac1::t_5a3bf6d67457b8 9,12-17,25-26,30,32,39
+  s_d4c0f0cbc85bbd::t_a68191133020e4 83-87,89
+  s_602244f602f38c::t_8e9c07aae761b2 42-57
+restrictedresourcepack/src/Overlayer/GameTweaksPatches.cs
+  s_1a2cd77bb41279::t_30497bc7e7bca2 14,18
+  s_1a2cd77bb41279::t_a695ef996c94ca 1-4,6-13,15-17,19-197
+  s_1a2cd77bb41279::t_ef445ba2ea7eb5 5
+restrictedresourcepack/src/Overlayer/OverlayerStats.cs
+  s_1a2cd77bb41279::t_30497bc7e7bca2 250
+  s_1a2cd77bb41279::t_a695ef996c94ca 1-5,7-249,251-433
+  s_1a2cd77bb41279::t_ef445ba2ea7eb5 6
+restrictedresourcepack/src/Discord/DiscordAutoDeafen.cs
+  s_1a2cd77bb41279::t_ef445ba2ea7eb5 5
+  s_1a2cd77bb41279::t_a695ef996c94ca 1-4,6-272
+restrictedresourcepack/src/Overlayer/OverlayerPatches.cs
+  s_1a2cd77bb41279::t_ef445ba2ea7eb5 3
+  s_1a2cd77bb41279::t_a695ef996c94ca 1-2,4-92
+src/Discord/DiscordLocalOAuthServer.cs
+  s_d4c0f0cbc85bbd::t_16c90c252796f7 17
+  s_d4c0f0cbc85bbd::t_37ba33b1912c89 89,92
+  s_989dfd6b107eaf::t_e77a8519c60e5a 20-28,67-68,74-79,90,517
+  s_d4c0f0cbc85bbd::t_aa440493af7fcc 91
+restrictedresourcepack/src/Mod/Main.cs
+  s_1a2cd77bb41279::t_a695ef996c94ca 1-4,6-8,10-40,42-53,55-71,73-82
+  s_1a2cd77bb41279::t_ef445ba2ea7eb5 5,41,54,72
+  s_1a2cd77bb41279::t_43ef22bc68af1c 9
+restrictedresourcepack/src/Discord/DiscordLocalOAuthServer.cs
+  s_1a2cd77bb41279::t_ef445ba2ea7eb5 13
+  s_1a2cd77bb41279::t_a695ef996c94ca 1-12,14-547
+src/Overlayer/GameTweaksPatches.cs
+  s_d2810fb731aac1::t_a7fc870a869cf9 40-45
+src/Mod/Settings.cs
+  s_989dfd6b107eaf::t_ddd2b9c980a1e8 69
+  s_d4c0f0cbc85bbd::t_76b8b9db518fd2 68,70-72
+restrictedresourcepack/src/Discord/DiscordRpc.cs
+  s_1a2cd77bb41279::t_a695ef996c94ca 1-9,11-223
+  s_1a2cd77bb41279::t_ef445ba2ea7eb5 10
+restrictedresourcepack/src/Mod/SettingsGui.cs
+  s_1a2cd77bb41279::t_ef445ba2ea7eb5 6
+  s_1a2cd77bb41279::t_a695ef996c94ca 1-5,7-61,63-246
+  s_1a2cd77bb41279::t_30497bc7e7bca2 62
+src/Discord/DiscordRpc.cs
+  s_d4c0f0cbc85bbd::t_6fe3c3f13a25a1 35
+restrictedresourcepack/meta/Info.json
+  s_1a2cd77bb41279::t_ef445ba2ea7eb5 2-3,6-8
+  s_1a2cd77bb41279::t_a695ef996c94ca 1,4-5,9
+restrictedresourcepack/README.md
+  s_1a2cd77bb41279::t_ef445ba2ea7eb5 1,51-52,90-91
+  s_1a2cd77bb41279::t_a695ef996c94ca 2-50,53-89,92-113
+restrictedresourcepack/RestrictedResourcePack.csproj
+  s_1a2cd77bb41279::t_a695ef996c94ca 1-11,13-48,52-113
+  s_1a2cd77bb41279::t_ef445ba2ea7eb5 12,49-51
+restrictedresourcepack/src/Mod/Settings.cs
+  s_1a2cd77bb41279::t_ef445ba2ea7eb5 4
+  s_1a2cd77bb41279::t_30497bc7e7bca2 57-58
+  s_1a2cd77bb41279::t_a695ef996c94ca 1-3,5-56,59-80
+restrictedresourcepack/src/Overlayer/OverlayerFont.cs
+  s_1a2cd77bb41279::t_a695ef996c94ca 1-5,7-58,60-65
+  s_1a2cd77bb41279::t_ef445ba2ea7eb5 6,59
+src/Discord/DiscordAutoDeafen.cs
+  s_d4c0f0cbc85bbd::t_3a55191920fe58 232
+  s_d4c0f0cbc85bbd::t_3f728aabfb7f66 15
+  s_602244f602f38c::t_660799d0eadebb 16,73,128,174-178,180-192,195
+  s_d4c0f0cbc85bbd::t_a5ca5de0117f14 196,206-207
+  s_d4c0f0cbc85bbd::t_6242910f039209 208-210,216-220
+  s_d2810fb731aac1::t_57f26dea92413b 164-170,172,197-205
+  s_602244f602f38c::t_20205c6f1b1e4f 179
+  s_989dfd6b107eaf::t_095a50fd7e2c07 2,13-14,32-36,38-42,45,52,61-67,72,76-80,90-92,96-116,126-127,131-132,140-144,151-163,173,193-194,211-215,221-222
+  s_d4c0f0cbc85bbd::t_cbd8dbadd527fa 75
+  s_602244f602f38c::t_ceb21bee56304c 93-95,171
+src/Mod/SettingsGui.cs
+  s_989dfd6b107eaf::t_800aad03ef3c47 203-206,208,210-211,220
+  s_d4c0f0cbc85bbd::t_6d13277759a48a 207
+  s_d4c0f0cbc85bbd::t_733558656f158c 197-202,209,219
+  s_d4c0f0cbc85bbd::t_2ac36694b27e1c 233
+src/Overlayer/OverlayerOverlay.cs
+  h_6eeb8441a8a159 137,139
+restrictedresourcepack/.gitignore
+  s_1a2cd77bb41279::t_a695ef996c94ca 1-5
+README.md
+  s_989dfd6b107eaf::t_474bc806637dcf 34-35
+  s_989dfd6b107eaf::t_e02f67e118b5a9 37,41
+BypassedResourcePack.csproj
+  s_d4c0f0cbc85bbd::t_0128dd8402df56 90
+  s_d4c0f0cbc85bbd::t_032538f41b9e2c 104
+restrictedresourcepack/src/Mod/Log.cs
+  s_1a2cd77bb41279::t_a695ef996c94ca 2-16
+  s_1a2cd77bb41279::t_ef445ba2ea7eb5 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "fa233b20e2704f7373e6387f3d6f43c642d73444",
+  "prompts": {},
+  "humans": {
+    "h_6eeb8441a8a159": {
+      "author": "koren <131921956+kkorenn@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_1a2cd77bb41279": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "01a132d1-ed8b-4184-93ab-26f1c0517c0e",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "koren <131921956+kkorenn@users.noreply.github.com>"
+    },
+    "s_602244f602f38c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e9b23-d16d-7261-ba8c-817bb69f079e",
+        "model": "gpt-5.5"
+      },
+      "human_author": "koren <131921956+kkorenn@users.noreply.github.com>"
+    },
+    "s_989dfd6b107eaf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e9841-333e-7f11-b55d-f830af514af5",
+        "model": "gpt-5.5"
+      },
+      "human_author": "koren <131921956+kkorenn@users.noreply.github.com>"
+    },
+    "s_d2810fb731aac1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e9a89-fdf9-7041-959a-09bcbbaac9b9",
+        "model": "gpt-5.5"
+      },
+      "human_author": "koren <131921956+kkorenn@users.noreply.github.com>"
+    },
+    "s_d4c0f0cbc85bbd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0d2ef206-b09e-480d-b1a8-760efffa742d",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "koren <131921956+kkorenn@users.noreply.github.com>"
+    }
+  }
+}
