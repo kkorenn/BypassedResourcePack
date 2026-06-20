@@ -1,0 +1,25 @@
+src/Overlayer/OverlayerPatches.cs
+  s_9e55bfde378463::t_867c37e7a3a73d 76-80
+  s_9e55bfde378463::t_63c6f899a2c634 9-11
+src/Overlayer/OverlayerStats.cs
+  s_9e55bfde378463::t_156ebe7653e622 21-29,32,37
+  s_9e55bfde378463::t_f0508427040ef3 11-13
+  s_9e55bfde378463::t_0b6a32e7e19ca8 87,98-106
+  s_9e55bfde378463::t_6aa8121b5a58bc 113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.8",
+  "base_commit_sha": "e0b6ecaf3fcc7332488da9cf50fe9766bc56f189",
+  "prompts": {},
+  "sessions": {
+    "s_9e55bfde378463": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "936bb146-6654-4344-abc2-cdeb2e201688",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "koren <131921956+kkorenn@users.noreply.github.com>"
+    }
+  }
+}
