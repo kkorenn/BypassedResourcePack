@@ -8,8 +8,9 @@ namespace BypassedResourcePack
     // Value brain, ported 1:1 from the customer's Overlayer tags + JS scripts.
     //
     // Modelled on Overlayer itself:
-    //  - Judgement counts come straight from the game's margin trackers (they already reset
-    //    per attempt / checkpoint revert), matching Overlayer's official tags.
+    //  - Judgement counts are a mod-owned per-run tally (fed by the AddHit hook and
+    //    cleared on every run-(re)start / scene transition) rather than the game's
+    //    margin trackers, which the game does not zero on an official-level restart.
     //  - IsPlaying mirrors Overlayer.Main.IsPlaying (ctrl && cdt && !paused && cdt.isGameWorld).
     //  - Stateful tags (RunsToHere/Tabub) are ticked every frame, exactly like the JS ran.
     internal static class OverlayerStats
@@ -17,35 +18,23 @@ namespace BypassedResourcePack
         private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
 
         // =====================================================================
-        // Judgement count fallback. Current ADOFAI stores counts in scrMarginTracker, but keeping
-        // a local tally lets the overlay survive a null/early tracker during scene setup.
+        // Judgement counts. We keep our OWN per-run tally (fed by the
+        // scrMarginTracker.AddHit hook in OnHit) instead of reading the game's
+        // scrMarginTracker counts live. The game only zeroes its trackers when it
+        // reloads the scene with GCS.checkpointNum == 0; on official ("main")
+        // levels a checkpoint respawn or in-place restart leaves the old counts in
+        // place, so reading them straight made the overlay carry judgements /
+        // accuracy over from the previous attempt. A mod-owned tally that we clear
+        // on every run-(re)start and scene transition resets reliably on every
+        // level type. (Mirrors KorenResourcePack's Judgement.judgementCounts.)
         // =====================================================================
 
-        private static readonly int[] fallbackCounts = new int[16];
+        private static readonly int[] liveCounts = new int[16];
 
         private static int Get(HitMargin m)
         {
-            try
-            {
-                scrMarginTracker[] trackers = scrMistakesManager.marginTrackers;
-                if (trackers != null && trackers.Length > 0)
-                {
-                    int total = 0;
-                    bool sawTracker = false;
-                    for (int n = 0; n < trackers.Length; n++)
-                    {
-                        scrMarginTracker tracker = trackers[n];
-                        if (tracker == null) continue;
-                        total += tracker.GetHits(m);
-                        sawTracker = true;
-                    }
-                    if (sawTracker) return total;
-                }
-            }
-            catch { }
-
             int i = (int)m;
-            return (i >= 0 && i < fallbackCounts.Length) ? fallbackCounts[i] : 0;
+            return (i >= 0 && i < liveCounts.Length) ? liveCounts[i] : 0;
         }
 
         internal static int CTE => Get(HitMargin.TooEarly);
@@ -95,7 +84,7 @@ namespace BypassedResourcePack
 
         internal static void OnRunStart()
         {
-            Array.Clear(fallbackCounts, 0, fallbackCounts.Length);
+            Array.Clear(liveCounts, 0, liveCounts.Length);
             Combo = 0;
             IsStarted = true;
             try { StartTile = scrController.instance != null ? scrController.instance.currentSeqID : 0; }
@@ -106,12 +95,22 @@ namespace BypassedResourcePack
         // Death — run no longer active so RunsToHere/Tabub register the end.
         internal static void OnDeath() => IsStarted = false;
 
+        // Scene transition (level exit / load). Clears the per-run tally so the next
+        // attempt — including an official-level restart that the game does not zero —
+        // starts from zero judgements and 100% accuracy.
+        internal static void OnSceneTransition()
+        {
+            Array.Clear(liveCounts, 0, liveCounts.Length);
+            Combo = 0;
+            IsStarted = false;
+        }
+
         private static float comboPulseTime = -999f;
 
         internal static void OnHit(HitMargin hit)
         {
             int i = (int)hit;
-            if (i >= 0 && i < fallbackCounts.Length) fallbackCounts[i]++;
+            if (i >= 0 && i < liveCounts.Length) liveCounts[i]++;
 
             // Pure-perfect combo (Perfect/Auto keep it), matching Overlayer's {Combo}.
             int prev = Combo;

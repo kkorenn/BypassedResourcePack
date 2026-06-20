@@ -6,7 +6,9 @@ namespace BypassedResourcePack
     // PlayingText/NotPlayingText by IsPlaying), so these only drive run state:
     //  - combo (pure-perfect) from each hit
     //  - IsStarted / StartTile for RunsToHere + Tabub
-    // Judgement counts are read live from scrMarginTracker, so reset hooks only reset local state.
+    //  - the mod-owned judgement tally (OverlayerStats.liveCounts), which the reset
+    //    hooks clear so judgements/accuracy reset on every attempt, including official
+    //    ("main") levels the game does not zero on restart.
     internal static class OverlayerPatches
     {
         private static void OnRunReset()
@@ -71,7 +73,11 @@ namespace BypassedResourcePack
         [HarmonyPatch(typeof(scrController), "StartLoadingScene")]
         private static class StartLoadingScenePatch
         {
-            private static void Postfix() => DiscordAutoDeafen.OnRunHide();
+            private static void Postfix()
+            {
+                OverlayerStats.OnSceneTransition();
+                DiscordAutoDeafen.OnRunHide();
+            }
         }
 
         [HarmonyPatch(typeof(scrUIController), "WipeToBlack")]
