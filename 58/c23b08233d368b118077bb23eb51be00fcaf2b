@@ -1,0 +1,97 @@
+restrictedresourcepack/src/Discord/DiscordAutoDeafen.cs
+  s_27705e5959557e::t_0f18de8a48a7ea 10-11,40-47,55,59-63,65-66,68,75,82-85,105-112,148-149,249,252-253,255,266-267
+restrictedresourcepack/src/Mod/Main.cs
+  s_27705e5959557e::t_0af5db704b5ed2 60
+src/Mod/SettingsGui.cs
+  s_86db90e48ced13::t_0b1b10e3ed30bb 172-175
+  s_14d5b37c30f601::t_ccbf9a82b2de4f 14-15,104-125,201-211
+src/Overlayer/OverlayerPatches.cs
+  s_bf5f22a0dbddbb::t_9fc9f4ad83f23b 73-80
+src/Overlayer/OverlayerFont.cs
+  s_27705e5959557e::t_68fc93dd68f2c4 20,28,34-35,42
+src/Overlayer/GameTweaksPatches.cs
+  s_14d5b37c30f601::t_ccbf9a82b2de4f 25-26
+  s_27705e5959557e::t_44be38cc5109b0 15-20,29,31-37,40-41,43-51,71-75,79,81-87,138-140,152-154,166,169,171-172,174,176-177,185
+src/Discord/DiscordRpc.cs
+  s_bf5f22a0dbddbb::t_9fc9f4ad83f23b 35,109
+  s_27705e5959557e::t_9901f31ac1e981 31,51-55,59,61-63,73,88,95-96
+src/Discord/DiscordAutoDeafen.cs
+  s_bf5f22a0dbddbb::t_bc3e0682558be6 86
+  s_27705e5959557e::t_14a00f536ac238 10-11,42-49,57,61-65,67-68,70,77,84-85,87,107-113,150-151,253,256-257,260,271-272
+  s_bf5f22a0dbddbb::t_9fc9f4ad83f23b 18-19,132,154,156,259,275,277
+  s_27705e5959557e::t_15e753ce39e870 114
+src/Overlayer/OverlayerStats.cs
+  s_27705e5959557e::t_2886008c996859 19-28,103,107-112,122-123,138,153-165,185,190-197,214-217,222-224,228-229,231-239,353,419-420,422,424-426,434-435,437,439-440,470-475,479-481,485-491,497
+src/Overlayer/OverlayerOverlay.cs
+  s_27705e5959557e::t_6aa87b534e31fe 78
+  s_27705e5959557e::t_0f319b0c13587a 84-90
+  s_27705e5959557e::t_c8ffa7f689795e 29-39,45-47,72,76-77,93-98,105-140,206,214-215,223,280,287-288,308-324,339-340,342-346,348-353,355-359,361-366,372-373,375-378,380-384,386-390,392-397,409-432
+  s_27705e5959557e::t_7a095d885ad72f 99-103
+  s_27705e5959557e::t_48185b1642698f 275-279
+  s_27705e5959557e::t_9804e9291be232 79
+  s_27705e5959557e::t_3b86d8bc5a0980 104
+restrictedresourcepack/src/Overlayer/OverlayerOverlay.cs
+  s_27705e5959557e::t_48185b1642698f 274-278
+  s_27705e5959557e::t_6aa87b534e31fe 77
+  s_27705e5959557e::t_0f319b0c13587a 83-89
+  s_27705e5959557e::t_3a3f170f460bc7 29-39,45-46,71,75-76,92-139,205,213-214,222,279,286-287,369-381
+  s_27705e5959557e::t_b11d5d20cb94d0 78
+  s_27705e5959557e::t_e5ba3c4ac54dc1 382
+restrictedresourcepack/src/Overlayer/GameTweaksPatches.cs
+  s_27705e5959557e::t_945cd5170a820e 15-20,29,31-37,40,42-50,70-74,78,80-86,137-139,151-153,165,168,170-171,173,175-176,184
+restrictedresourcepack/src/Overlayer/OverlayerPatches.cs
+  s_27705e5959557e::t_3af1a60ef40f9f 74-78
+src/Mod/Main.cs
+  s_27705e5959557e::t_03907ee701e2eb 61
+  s_14d5b37c30f601::t_ccbf9a82b2de4f 31
+restrictedresourcepack/src/Discord/DiscordRpc.cs
+  s_27705e5959557e::t_d35a8dca056cbb 31,50-54,58,60,70,85,92-93
+src/Mod/Settings.cs
+  s_86db90e48ced13::t_0b1b10e3ed30bb 10-14,17-18
+  s_14d5b37c30f601::t_ccbf9a82b2de4f 31-33,65-66,83-113
+  s_14d5b37c30f601::t_0e95a1de9cfbe9 114
+restrictedresourcepack/src/Overlayer/OverlayerStats.cs
+  s_27705e5959557e::t_f6657257580718 18-25,112,116-130,144,159-171,191,196-203,220-223,228-230,234-235,237-245,359,425-426,428,430-432,440-441,443,445-446,476-481,485-487,491-497,503
+restrictedresourcepack/src/Overlayer/OverlayerFont.cs
+  s_27705e5959557e::t_0af5db704b5ed2 20,28,34-35,42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "58c23b08233d368b118077bb23eb51be00fcaf2b",
+  "prompts": {},
+  "sessions": {
+    "s_14d5b37c30f601": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06733-85b5-7942-b2f8-f27c6d4b6f13",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "koren <131921956+kkorenn@users.noreply.github.com>"
+    },
+    "s_27705e5959557e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06733-b5e9-7d41-9ff4-8cf02f0ad88f",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "koren <131921956+kkorenn@users.noreply.github.com>"
+    },
+    "s_86db90e48ced13": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06733-77db-7b32-b565-b84d7e3b39e9",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "koren <131921956+kkorenn@users.noreply.github.com>"
+    },
+    "s_bf5f22a0dbddbb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06733-7054-73c1-95ea-471043d1c8d1",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "koren <131921956+kkorenn@users.noreply.github.com>"
+    }
+  }
+}
