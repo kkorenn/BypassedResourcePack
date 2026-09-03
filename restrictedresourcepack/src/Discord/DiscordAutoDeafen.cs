@@ -7,7 +7,8 @@ namespace RestrictedResourcePack
     internal static class DiscordAutoDeafen
     {
         private static DiscordRpc rpc;
-        private static string configKey;
+        private static string configClientId;
+        private static string configAccessToken;
         private static bool desiredDeaf;
         private static string status = "off";
         private static bool suppressUntilRestart;
@@ -36,7 +37,14 @@ namespace RestrictedResourcePack
 
         internal static void Tick()
         {
-            Tick(CurrentProgress01());
+            Settings s = Main.Settings;
+            if (s == null || !Main.Enabled || !s.AutoDeafenOn)
+            {
+                SetInactive();
+                return;
+            }
+
+            TickEnabled(s, CurrentProgress01());
         }
 
         internal static void Tick(float progress01)
@@ -44,30 +52,37 @@ namespace RestrictedResourcePack
             Settings s = Main.Settings;
             if (s == null || !Main.Enabled || !s.AutoDeafenOn)
             {
-                Stop();
-                status = "off";
+                SetInactive();
                 return;
             }
 
-            s.AutoDeafenAtPercent = Clamp(s.AutoDeafenAtPercent, 0f, 100f);
+            TickEnabled(s, progress01);
+        }
 
-            if (string.IsNullOrEmpty(Trim(s.DiscordAccessToken)))
+        private static void TickEnabled(Settings s, float progress01)
+        {
+            s.AutoDeafenAtPercent = Clamp(s.AutoDeafenAtPercent, 0f, 100f);
+            string accessToken = Trim(s.DiscordAccessToken);
+            string clientId = DiscordLocalOAuthServer.ClientId;
+
+            if (string.IsNullOrEmpty(accessToken))
             {
                 StopRpc();
                 status = "waiting for authorization";
                 return;
             }
 
-            if (string.IsNullOrEmpty(DiscordLocalOAuthServer.ClientId))
+            if (string.IsNullOrEmpty(clientId))
             {
                 StopRpc();
                 status = "set client id first";
                 return;
             }
 
-            string nextConfigKey = BuildConfigKey(s);
-            if (rpc == null || !string.Equals(configKey, nextConfigKey, StringComparison.Ordinal))
-                Restart(s, nextConfigKey);
+            if (rpc == null ||
+                !string.Equals(configClientId, clientId, StringComparison.Ordinal) ||
+                !string.Equals(configAccessToken, accessToken, StringComparison.Ordinal))
+                Restart(clientId, accessToken);
 
             if (progress01 >= 0f && !runStartCaptured)
                 CaptureRunStart();
@@ -85,6 +100,14 @@ namespace RestrictedResourcePack
                 rpc?.SetDeaf(shouldDeaf);
                 Log.Verbose("[discord] desired deaf = " + shouldDeaf);
             }
+        }
+
+        private static void SetInactive()
+        {
+            if (rpc != null || DiscordLocalOAuthServer.Running || desiredDeaf ||
+                configClientId != null || configAccessToken != null)
+                Stop();
+            status = "off";
         }
 
         internal static void OnRunReset()
@@ -122,7 +145,8 @@ namespace RestrictedResourcePack
             }
             DiscordLocalOAuthServer.Stop();
             desiredDeaf = false;
-            configKey = null;
+            configClientId = null;
+            configAccessToken = null;
             suppressUntilRestart = false;
             runStartCaptured = false;
             capturedStartSeqId = -1;
@@ -222,14 +246,13 @@ namespace RestrictedResourcePack
             catch { return -1f; }
         }
 
-        private static void Restart(Settings s, string nextConfigKey)
+        private static void Restart(string clientId, string accessToken)
         {
             StopRpc();
-            configKey = nextConfigKey;
+            configClientId = clientId;
+            configAccessToken = accessToken;
             status = "starting";
-            rpc = new DiscordRpc(
-                DiscordLocalOAuthServer.ClientId,
-                Trim(s.DiscordAccessToken));
+            rpc = new DiscordRpc(clientId, accessToken);
             rpc.Start();
         }
 
@@ -240,13 +263,8 @@ namespace RestrictedResourcePack
             try { rpc.Stop(); } catch { }
             rpc = null;
             desiredDeaf = false;
-            configKey = null;
-        }
-
-        private static string BuildConfigKey(Settings s)
-        {
-            return DiscordLocalOAuthServer.ClientId + "\n" +
-                   Trim(s.DiscordAccessToken);
+            configClientId = null;
+            configAccessToken = null;
         }
 
         internal static void SaveAccessToken(string token)

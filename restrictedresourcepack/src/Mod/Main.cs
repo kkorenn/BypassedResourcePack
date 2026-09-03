@@ -57,6 +57,7 @@ namespace RestrictedResourcePack
 
         private static void OnUpdate(UnityModManager.ModEntry modEntry, float dt)
         {
+            if (!Enabled) return;
             OverlayerOverlay.Tick();
             DiscordAutoDeafen.Tick();
         }

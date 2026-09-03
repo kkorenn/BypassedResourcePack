@@ -26,11 +26,24 @@ namespace RestrictedResourcePack
             public TextMeshProUGUI Shadow;
             public Func<OverlayPanel> Cfg;   // live settings for this panel
             public Func<string> Playing;     // content while a run is live
+            public bool Animated;
+            public bool StateInitialized;
+            public bool LayoutInitialized;
+            public bool LastEnabled;
+            public bool LastPlaying;
+            public float LastX;
+            public float LastY;
+            public float LastScale;
+            public int LastRevision = int.MinValue;
+            public int LastSettingsKey = int.MinValue;
+            public string LastNotPlaying;
         }
 
         private static readonly Color ShadowColor = new Color(1f, 1f, 1f, 0.35f);
         private static readonly Vector2 ShadowOffset = new Vector2(2.5f, -2.5f);
         private static readonly Regex ColorTagRegex = new Regex(@"</?color[^>]*>", RegexOptions.Compiled);
+        private static GameObject titleObject;
+        private static bool titleHidden;
         private static string StripColor(string s) =>
             string.IsNullOrEmpty(s) || s.IndexOf('<') < 0 ? s : ColorTagRegex.Replace(s, string.Empty);
 
@@ -46,8 +59,6 @@ namespace RestrictedResourcePack
 
             try
             {
-                OverlayerStats.Tick();
-
                 bool playing = OverlayerStats.IsPlaying();
                 SetTitleHidden(playing && s.HideTitle);
 
@@ -57,27 +68,75 @@ namespace RestrictedResourcePack
                     return;
                 }
 
+                OverlayerStats.Tick();
                 Build();
                 if (root != null && !root.activeSelf) root.SetActive(true);
+
+                int revision = OverlayerStats.Revision;
+                int settingsKey = ContentSettingsKey(s);
+                bool animate = playing && OverlayerStats.ComboAnimating;
 
                 for (int i = 0; i < panels.Count; i++)
                 {
                     Panel p = panels[i];
                     OverlayPanel cfg = p.Cfg();
+                    if (cfg == null)
+                    {
+                        p.Text.enabled = false;
+                        p.Shadow.enabled = false;
+                        p.StateInitialized = false;
+                        continue;
+                    }
                     bool on = cfg.Enabled;
 
-                    if (p.Text.enabled != on) p.Text.enabled = on;
-                    if (p.Shadow.enabled != on) p.Shadow.enabled = on;
-                    if (!on) continue;
+                    if (!p.StateInitialized || p.LastEnabled != on)
+                    {
+                        p.Text.enabled = on;
+                        p.Shadow.enabled = on;
+                        p.LastEnabled = on;
+                    }
+                    if (!on)
+                    {
+                        p.StateInitialized = true;
+                        continue;
+                    }
 
-                    Vector2 pos = new Vector2((cfg.X - 0.5f) * 1920f, (cfg.Y - 0.5f) * 1080f);
-                    ApplyPosScale(p.Text.rectTransform, pos, cfg.Scale);
-                    ApplyPosScale(p.Shadow.rectTransform, pos + ShadowOffset, cfg.Scale);
+                    if (!p.LayoutInitialized || p.LastX != cfg.X || p.LastY != cfg.Y || p.LastScale != cfg.Scale)
+                    {
+                        Vector2 pos = new Vector2((cfg.X - 0.5f) * 1920f, (cfg.Y - 0.5f) * 1080f);
+                        ApplyPosScale(p.Text.rectTransform, pos, cfg.Scale);
+                        ApplyPosScale(p.Shadow.rectTransform, pos + ShadowOffset, cfg.Scale);
+                        p.LastX = cfg.X;
+                        p.LastY = cfg.Y;
+                        p.LastScale = cfg.Scale;
+                        p.LayoutInitialized = true;
+                    }
 
-                    string c = playing ? p.Playing() : (cfg.NotPlaying ?? "");
-                    if (p.Text.text != c) p.Text.text = c;
-                    string sc = StripColor(c);
-                    if (p.Shadow.text != sc) p.Shadow.text = sc;
+                    string notPlaying = cfg.NotPlaying ?? "";
+                    bool contentDirty = !p.StateInitialized || p.LastPlaying != playing;
+                    if (playing)
+                    {
+                        contentDirty |= p.LastRevision != revision || p.LastSettingsKey != settingsKey;
+                        contentDirty |= p.Animated && animate;
+                    }
+                    else
+                    {
+                        contentDirty |= !string.Equals(p.LastNotPlaying, notPlaying, StringComparison.Ordinal);
+                    }
+
+                    if (contentDirty)
+                    {
+                        string content = playing ? p.Playing() : notPlaying;
+                        if (!string.Equals(p.Text.text, content, StringComparison.Ordinal)) p.Text.text = content;
+                        string shadow = StripColor(content);
+                        if (!string.Equals(p.Shadow.text, shadow, StringComparison.Ordinal)) p.Shadow.text = shadow;
+                        p.LastPlaying = playing;
+                        p.LastRevision = revision;
+                        p.LastSettingsKey = settingsKey;
+                        p.LastNotPlaying = notPlaying;
+                    }
+
+                    p.StateInitialized = true;
                 }
             }
             catch (Exception ex)
@@ -143,7 +202,7 @@ namespace RestrictedResourcePack
             Add("RightInfo", 0f, 0.5f, 34f, 0f, TextAlignmentOptions.Left, false,
                 () => Main.Settings.PanelRightInfo, BuildRightInfo);
             Add("Combo", 0.5f, 0.45f, 130f, -30f, TextAlignmentOptions.Center, false,
-                () => Main.Settings.PanelCombo, BuildCombo);
+                () => Main.Settings.PanelCombo, BuildCombo, true);
             Add("ProgressBar", 0.5f, 0.5f, 44f, 0f, TextAlignmentOptions.Center, false,
                 () => Main.Settings.PanelProgressBar, OverlayerStats.ProgressBar);
 
@@ -151,7 +210,8 @@ namespace RestrictedResourcePack
         }
 
         private static void Add(string name, float pivotX, float pivotY, float fontSize, float lineSpacing,
-            TextAlignmentOptions align, bool bold, Func<OverlayPanel> cfg, Func<string> playing)
+            TextAlignmentOptions align, bool bold, Func<OverlayPanel> cfg, Func<string> playing,
+            bool animated = false)
         {
             TMP_FontAsset font = (bold ? OverlayerFont.Bold : OverlayerFont.SemiBold) ?? FallbackFont();
             Vector2 pivot = new Vector2(pivotX, pivotY);
@@ -159,7 +219,7 @@ namespace RestrictedResourcePack
             TextMeshProUGUI shadow = MakeText(name + "_Shadow", font, align, fontSize, lineSpacing, ShadowColor, pivot);
             TextMeshProUGUI t = MakeText(name, font, align, fontSize, lineSpacing, Color.black, pivot);
 
-            panels.Add(new Panel { Text = t, Shadow = shadow, Cfg = cfg, Playing = playing });
+            panels.Add(new Panel { Text = t, Shadow = shadow, Cfg = cfg, Playing = playing, Animated = animated });
         }
 
         private static TextMeshProUGUI MakeText(string name, TMP_FontAsset font, TextAlignmentOptions align,
@@ -211,12 +271,20 @@ namespace RestrictedResourcePack
 
         private static void SetTitleHidden(bool hide)
         {
+            if (titleObject != null && titleHidden == hide)
+            {
+                if (titleObject.activeSelf == hide) titleObject.SetActive(!hide);
+                return;
+            }
+
             try
             {
                 scrUIController ui = scrUIController.instance;
                 if (ui == null || ui.txtLevelName == null) return;
                 GameObject go = ui.txtLevelName.gameObject;
                 if (go.activeSelf == hide) go.SetActive(!hide);
+                titleObject = go;
+                titleHidden = hide;
             }
             catch { }
         }
@@ -297,6 +365,20 @@ namespace RestrictedResourcePack
             string cr = OverlayerStats.ColorRange(OverlayerStats.Combo, 0, 500, "00AAAA", "AA00AA");
             return "<size=" + pop.ToString("0", CultureInfo.InvariantCulture) +
                    "%><color=#" + cr + ">" + OverlayerStats.Combo + "</color></size>\n<size=60>Combo</size>";
+        }
+
+        private static int ContentSettingsKey(Settings s)
+        {
+            int key = 0;
+            if (s.LineXAcc) key |= 1 << 0;
+            if (s.LineMaxAcc) key |= 1 << 1;
+            if (s.LineProgress) key |= 1 << 2;
+            if (s.LineTile) key |= 1 << 3;
+            if (s.LineRuns) key |= 1 << 4;
+            if (s.LineTileBpm) key |= 1 << 5;
+            if (s.LineCurBpm) key |= 1 << 6;
+            if (s.LineKps) key |= 1 << 7;
+            return key;
         }
     }
 }

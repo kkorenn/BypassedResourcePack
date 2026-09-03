@@ -28,6 +28,7 @@ namespace RestrictedResourcePack
         private volatile string status = "idle";
         private Stream stream;
         private readonly object ioLock = new object();
+        private readonly AutoResetEvent stateChanged = new AutoResetEvent(false);
 
         internal string Status => status;
         internal bool Ready => ready;
@@ -46,15 +47,17 @@ namespace RestrictedResourcePack
             thread.Start();
         }
 
-        internal void SetDeaf(bool deaf) => desiredDeaf = deaf;
+        internal void SetDeaf(bool deaf)
+        {
+            desiredDeaf = deaf;
+            stateChanged.Set();
+        }
 
         internal void Stop()
         {
+            desiredDeaf = false;
             running = false;
-            try { if (ready) ApplyDeaf(false); } catch { }   // never leave the user deafened
-            try { stream?.Dispose(); } catch { }
-            stream = null;
-            ready = false;
+            stateChanged.Set();
         }
 
         private void Run()
@@ -64,6 +67,7 @@ namespace RestrictedResourcePack
                 status = "connecting";
                 stream = Connect();
                 if (stream == null) { status = "discord not found"; running = false; return; }
+                if (!running) return;
 
                 Handshake();
 
@@ -78,14 +82,15 @@ namespace RestrictedResourcePack
                 status = "ready";
 
                 bool current = false;
-                while (running)
+                while (true)
                 {
                     if (desiredDeaf != current)
                     {
                         ApplyDeaf(desiredDeaf);
                         current = desiredDeaf;
                     }
-                    Thread.Sleep(120);
+                    if (!running) break;
+                    stateChanged.WaitOne(120);
                 }
             }
             catch (Exception ex)

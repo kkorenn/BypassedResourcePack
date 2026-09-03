@@ -71,7 +71,11 @@ namespace RestrictedResourcePack
         [HarmonyPatch(typeof(scrController), "StartLoadingScene")]
         private static class StartLoadingScenePatch
         {
-            private static void Postfix() => DiscordAutoDeafen.OnRunHide();
+            private static void Postfix()
+            {
+                OverlayerStats.OnSceneTransition();
+                DiscordAutoDeafen.OnRunHide();
+            }
         }
 
         [HarmonyPatch(typeof(scrUIController), "WipeToBlack")]

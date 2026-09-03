@@ -26,11 +26,25 @@ namespace BypassedResourcePack
             public TextMeshProUGUI Shadow;
             public Func<OverlayPanel> Cfg;   // live settings for this panel
             public Func<string> Playing;     // content while a run is live
+            public bool Animated;
+            public bool StateInitialized;
+            public bool LayoutInitialized;
+            public bool LastEnabled;
+            public bool LastPlaying;
+            public float LastX;
+            public float LastY;
+            public float LastScale;
+            public int LastRevision = int.MinValue;
+            public int LastSettingsKey = int.MinValue;
+            public string LastNotPlaying;
         }
 
         private static readonly Color ShadowColor = new Color(0f, 0f, 0f, 0.35f);
         private static readonly Vector2 ShadowOffset = new Vector2(2.5f, -2.5f);
         private static readonly Regex ColorTagRegex = new Regex(@"</?color[^>]*>", RegexOptions.Compiled);
+        private static readonly StringBuilder ContentBuilder = new StringBuilder(256);
+        private static GameObject titleObject;
+        private static bool titleHidden;
         private static string StripColor(string s) =>
             string.IsNullOrEmpty(s) || s.IndexOf('<') < 0 ? s : ColorTagRegex.Replace(s, string.Empty);
 
@@ -46,8 +60,6 @@ namespace BypassedResourcePack
 
             try
             {
-                OverlayerStats.Tick();
-
                 bool playing = OverlayerStats.IsPlaying();
                 SetTitleHidden(playing && s.HideTitle);
 
@@ -57,27 +69,75 @@ namespace BypassedResourcePack
                     return;
                 }
 
+                OverlayerStats.Tick();
                 Build();
                 if (root != null && !root.activeSelf) root.SetActive(true);
+
+                int revision = OverlayerStats.Revision;
+                int settingsKey = ContentSettingsKey(s);
+                bool animate = playing && OverlayerStats.ComboAnimating;
 
                 for (int i = 0; i < panels.Count; i++)
                 {
                     Panel p = panels[i];
                     OverlayPanel cfg = p.Cfg();
+                    if (cfg == null)
+                    {
+                        p.Text.enabled = false;
+                        p.Shadow.enabled = false;
+                        p.StateInitialized = false;
+                        continue;
+                    }
                     bool on = cfg.Enabled;
 
-                    if (p.Text.enabled != on) p.Text.enabled = on;
-                    if (p.Shadow.enabled != on) p.Shadow.enabled = on;
-                    if (!on) continue;
+                    if (!p.StateInitialized || p.LastEnabled != on)
+                    {
+                        p.Text.enabled = on;
+                        p.Shadow.enabled = on;
+                        p.LastEnabled = on;
+                    }
+                    if (!on)
+                    {
+                        p.StateInitialized = true;
+                        continue;
+                    }
 
-                    Vector2 pos = new Vector2((cfg.X - 0.5f) * 1920f, (cfg.Y - 0.5f) * 1080f);
-                    ApplyPosScale(p.Text.rectTransform, pos, cfg.Scale);
-                    ApplyPosScale(p.Shadow.rectTransform, pos + ShadowOffset, cfg.Scale);
+                    if (!p.LayoutInitialized || p.LastX != cfg.X || p.LastY != cfg.Y || p.LastScale != cfg.Scale)
+                    {
+                        Vector2 pos = new Vector2((cfg.X - 0.5f) * 1920f, (cfg.Y - 0.5f) * 1080f);
+                        ApplyPosScale(p.Text.rectTransform, pos, cfg.Scale);
+                        ApplyPosScale(p.Shadow.rectTransform, pos + ShadowOffset, cfg.Scale);
+                        p.LastX = cfg.X;
+                        p.LastY = cfg.Y;
+                        p.LastScale = cfg.Scale;
+                        p.LayoutInitialized = true;
+                    }
 
-                    string c = playing ? p.Playing() : (cfg.NotPlaying ?? "");
-                    if (p.Text.text != c) p.Text.text = c;
-                    string sc = StripColor(c);
-                    if (p.Shadow.text != sc) p.Shadow.text = sc;
+                    string notPlaying = cfg.NotPlaying ?? "";
+                    bool contentDirty = !p.StateInitialized || p.LastPlaying != playing;
+                    if (playing)
+                    {
+                        contentDirty |= p.LastRevision != revision || p.LastSettingsKey != settingsKey;
+                        contentDirty |= p.Animated && animate;
+                    }
+                    else
+                    {
+                        contentDirty |= !string.Equals(p.LastNotPlaying, notPlaying, StringComparison.Ordinal);
+                    }
+
+                    if (contentDirty)
+                    {
+                        string content = playing ? p.Playing() : notPlaying;
+                        if (!string.Equals(p.Text.text, content, StringComparison.Ordinal)) p.Text.text = content;
+                        string shadow = StripColor(content);
+                        if (!string.Equals(p.Shadow.text, shadow, StringComparison.Ordinal)) p.Shadow.text = shadow;
+                        p.LastPlaying = playing;
+                        p.LastRevision = revision;
+                        p.LastSettingsKey = settingsKey;
+                        p.LastNotPlaying = notPlaying;
+                    }
+
+                    p.StateInitialized = true;
                 }
             }
             catch (Exception ex)
@@ -143,7 +203,7 @@ namespace BypassedResourcePack
             Add("RightInfo", 0f, 0.5f, 34f, 0f, TextAlignmentOptions.Left, false,
                 () => Main.Settings.PanelRightInfo, BuildRightInfo);
             Add("Combo", 0.5f, 0.45f, 130f, -30f, TextAlignmentOptions.Center, false,
-                () => Main.Settings.PanelCombo, BuildCombo);
+                () => Main.Settings.PanelCombo, BuildCombo, true);
             Add("ProgressBar", 0.5f, 0.5f, 44f, 0f, TextAlignmentOptions.Center, false,
                 () => Main.Settings.PanelProgressBar, OverlayerStats.ProgressBar);
 
@@ -151,7 +211,8 @@ namespace BypassedResourcePack
         }
 
         private static void Add(string name, float pivotX, float pivotY, float fontSize, float lineSpacing,
-            TextAlignmentOptions align, bool bold, Func<OverlayPanel> cfg, Func<string> playing)
+            TextAlignmentOptions align, bool bold, Func<OverlayPanel> cfg, Func<string> playing,
+            bool animated = false)
         {
             TMP_FontAsset font = (bold ? OverlayerFont.Bold : OverlayerFont.SemiBold) ?? FallbackFont();
             Vector2 pivot = new Vector2(pivotX, pivotY);
@@ -159,7 +220,7 @@ namespace BypassedResourcePack
             TextMeshProUGUI shadow = MakeText(name + "_Shadow", font, align, fontSize, lineSpacing, ShadowColor, pivot);
             TextMeshProUGUI t = MakeText(name, font, align, fontSize, lineSpacing, Color.white, pivot);
 
-            panels.Add(new Panel { Text = t, Shadow = shadow, Cfg = cfg, Playing = playing });
+            panels.Add(new Panel { Text = t, Shadow = shadow, Cfg = cfg, Playing = playing, Animated = animated });
         }
 
         private static TextMeshProUGUI MakeText(string name, TMP_FontAsset font, TextAlignmentOptions align,
@@ -211,12 +272,20 @@ namespace BypassedResourcePack
 
         private static void SetTitleHidden(bool hide)
         {
+            if (titleObject != null && titleHidden == hide)
+            {
+                if (titleObject.activeSelf == hide) titleObject.SetActive(!hide);
+                return;
+            }
+
             try
             {
                 scrUIController ui = scrUIController.instance;
                 if (ui == null || ui.txtLevelName == null) return;
                 GameObject go = ui.txtLevelName.gameObject;
                 if (go.activeSelf == hide) go.SetActive(!hide);
+                titleObject = go;
+                titleHidden = hide;
             }
             catch { }
         }
@@ -236,15 +305,23 @@ namespace BypassedResourcePack
 
         private static string BuildJudgements()
         {
-            return "<color=#" + JFail + ">" + OverlayerStats.Overloads + "</color> " +
-                   "<color=#" + JTooEarly + ">" + OverlayerStats.CTE + "</color> " +
-                   "<color=#" + JVeryEarly + ">" + OverlayerStats.CVE + "</color> " +
-                   "<color=#" + JEarlyPerf + ">" + OverlayerStats.CEP + "</color> " +
-                   "<color=#" + JPerfect + ">" + OverlayerStats.CP + "</color> " +
-                   "<color=#" + JEarlyPerf + ">" + OverlayerStats.CLP + "</color> " +
-                   "<color=#" + JVeryEarly + ">" + OverlayerStats.CVL + "</color> " +
-                   "<color=#" + JTooEarly + ">" + OverlayerStats.CTL + "</color> " +
-                   "<color=#" + JFail + ">" + OverlayerStats.MissCount + "</color>";
+            ContentBuilder.Clear();
+            AppendJudgement(JFail, OverlayerStats.Overloads);
+            AppendJudgement(JTooEarly, OverlayerStats.CTE);
+            AppendJudgement(JVeryEarly, OverlayerStats.CVE);
+            AppendJudgement(JEarlyPerf, OverlayerStats.CEP);
+            AppendJudgement(JPerfect, OverlayerStats.CP);
+            AppendJudgement(JEarlyPerf, OverlayerStats.CLP);
+            AppendJudgement(JVeryEarly, OverlayerStats.CVL);
+            AppendJudgement(JTooEarly, OverlayerStats.CTL);
+            AppendJudgement(JFail, OverlayerStats.MissCount, false);
+            return ContentBuilder.ToString();
+        }
+
+        private static void AppendJudgement(string color, int count, bool trailingSpace = true)
+        {
+            ContentBuilder.Append("<color=#").Append(color).Append('>').Append(count).Append("</color>");
+            if (trailingSpace) ContentBuilder.Append(' ');
         }
 
         // White->green as accuracy climbs to 100, gold at 100.000.
@@ -259,31 +336,65 @@ namespace BypassedResourcePack
             Settings s = Main.Settings;
             double xacc = OverlayerStats.XAccuracy();
             double maxacc = OverlayerStats.MaxAcc();
-            List<string> lines = new List<string>(4);
+            ContentBuilder.Clear();
+            bool hasLine = false;
             if (s.LineXAcc)
-                lines.Add("<color=#99FF99>XAcc</color> | <color=#" + AccColor(xacc) + ">" + OverlayerStats.F(xacc, 3) + "</color>");
+            {
+                ContentBuilder.Append("<color=#99FF99>XAcc</color> | <color=#").Append(AccColor(xacc))
+                    .Append('>').Append(OverlayerStats.F(xacc, 3)).Append("</color>");
+                hasLine = true;
+            }
             if (s.LineMaxAcc)
-                lines.Add("<color=#77FF77>MaxAcc</color> | <color=#" + AccColor(maxacc) + ">" + OverlayerStats.F(maxacc, 3) + "</color>");
+            {
+                AppendNewline(hasLine);
+                ContentBuilder.Append("<color=#77FF77>MaxAcc</color> | <color=#").Append(AccColor(maxacc))
+                    .Append('>').Append(OverlayerStats.F(maxacc, 3)).Append("</color>");
+                hasLine = true;
+            }
             if (s.LineProgress)
-                lines.Add("<color=#33FF33>Progress</color> | " + OverlayerStats.BetterProgress());
+            {
+                AppendNewline(hasLine);
+                ContentBuilder.Append("<color=#33FF33>Progress</color> | ").Append(OverlayerStats.BetterProgress());
+                hasLine = true;
+            }
             if (s.LineTile)
-                lines.Add("<color=#11FF11>" + OverlayerStats.CurTile + "</color> / " + OverlayerStats.TotalTile);
-            return string.Join("\n", lines.ToArray());
+            {
+                AppendNewline(hasLine);
+                ContentBuilder.Append("<color=#11FF11>").Append(OverlayerStats.CurTile)
+                    .Append("</color> / ").Append(OverlayerStats.TotalTile);
+            }
+            return ContentBuilder.ToString();
         }
 
         private static string BuildRightInfo()
         {
             Settings s = Main.Settings;
-            List<string> lines = new List<string>(4);
+            ContentBuilder.Clear();
+            bool hasLine = false;
             if (s.LineRuns)
-                lines.Add("<color=#9999FF>Runs To Here</color> | " + OverlayerStats.RunsToHere());
+            {
+                ContentBuilder.Append("<color=#9999FF>Runs To Here</color> | ").Append(OverlayerStats.RunsToHere());
+                hasLine = true;
+            }
             if (s.LineTileBpm)
-                lines.Add("<color=#6666FF>TileBPM</color> | " + OverlayerStats.F(OverlayerStats.TileBpm, 2));
+            {
+                AppendNewline(hasLine);
+                ContentBuilder.Append("<color=#6666FF>TileBPM</color> | ").Append(OverlayerStats.F(OverlayerStats.TileBpm, 2));
+                hasLine = true;
+            }
             if (s.LineCurBpm)
-                lines.Add("<color=#3333FF>CurBPM</color> | " + OverlayerStats.F(OverlayerStats.CurBpm, 2));
+            {
+                AppendNewline(hasLine);
+                ContentBuilder.Append("<color=#3333FF>CurBPM</color> | ").Append(OverlayerStats.F(OverlayerStats.CurBpm, 2));
+                hasLine = true;
+            }
             if (s.LineKps)
-                lines.Add("<color=#0000FF>KPS</color> | " + Mathf.CeilToInt((float)OverlayerStats.RecKPSWithoutPitch).ToString(CultureInfo.InvariantCulture));
-            return string.Join("\n", lines.ToArray());
+            {
+                AppendNewline(hasLine);
+                ContentBuilder.Append("<color=#0000FF>KPS</color> | ")
+                    .Append(Mathf.CeilToInt((float)OverlayerStats.RecKPSWithoutPitch));
+            }
+            return ContentBuilder.ToString();
         }
 
         private static string BuildTabub()
@@ -295,8 +406,30 @@ namespace BypassedResourcePack
         {
             float pop = OverlayerStats.ComboPopPercent();
             string cr = OverlayerStats.ColorRange(OverlayerStats.Combo, 0, 500, "FF5555", "55FF55");
-            return "<size=" + pop.ToString("0", CultureInfo.InvariantCulture) +
-                   "%><color=#" + cr + ">" + OverlayerStats.Combo + "</color></size>\n<size=60>Combo</size>";
+            ContentBuilder.Clear();
+            ContentBuilder.Append("<size=").Append(pop.ToString("0", CultureInfo.InvariantCulture))
+                .Append("%><color=#").Append(cr).Append('>').Append(OverlayerStats.Combo)
+                .Append("</color></size>\n<size=60>Combo</size>");
+            return ContentBuilder.ToString();
+        }
+
+        private static void AppendNewline(bool hasLine)
+        {
+            if (hasLine) ContentBuilder.Append('\n');
+        }
+
+        private static int ContentSettingsKey(Settings s)
+        {
+            int key = 0;
+            if (s.LineXAcc) key |= 1 << 0;
+            if (s.LineMaxAcc) key |= 1 << 1;
+            if (s.LineProgress) key |= 1 << 2;
+            if (s.LineTile) key |= 1 << 3;
+            if (s.LineRuns) key |= 1 << 4;
+            if (s.LineTileBpm) key |= 1 << 5;
+            if (s.LineCurBpm) key |= 1 << 6;
+            if (s.LineKps) key |= 1 << 7;
+            return key;
         }
     }
 }

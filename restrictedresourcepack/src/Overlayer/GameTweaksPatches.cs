@@ -12,6 +12,12 @@ namespace RestrictedResourcePack
     {
         private static readonly Vector3 OffScreen = new Vector3(123456f, 123456f, 123456f);
         private static readonly Color Transparent = new Color(1f, 1f, 1f, 0f);
+        private static string cachedPlanet1Hex;
+        private static string cachedPlanet2Hex;
+        private static Color cachedPlanet1Color;
+        private static Color cachedPlanet2Color;
+        private static bool cachedPlanet1Valid;
+        private static bool cachedPlanet2Valid;
 
         private static bool TryHex(string hex, out Color color)
         {
@@ -20,16 +26,28 @@ namespace RestrictedResourcePack
             return ColorUtility.TryParseHtmlString(hex[0] == '#' ? hex : "#" + hex, out color);
         }
 
-        private static bool IsRed(PlanetRenderer r)
+        private static void RefreshPlanetColors(Settings settings)
         {
-            try { var c = scrController.instance; return c != null && c.planetRed != null && r == c.planetRed.planetRenderer; }
-            catch { return false; }
+            if (string.Equals(cachedPlanet1Hex, settings.Planet1Hex, System.StringComparison.Ordinal) &&
+                string.Equals(cachedPlanet2Hex, settings.Planet2Hex, System.StringComparison.Ordinal)) return;
+
+            cachedPlanet1Hex = settings.Planet1Hex;
+            cachedPlanet2Hex = settings.Planet2Hex;
+            cachedPlanet1Valid = TryHex(cachedPlanet1Hex, out cachedPlanet1Color);
+            cachedPlanet2Valid = TryHex(cachedPlanet2Hex, out cachedPlanet2Color);
         }
 
-        private static bool IsBlue(PlanetRenderer r)
+        private static int GameplayPlanetRole(PlanetRenderer renderer)
         {
-            try { var c = scrController.instance; return c != null && c.planetBlue != null && r == c.planetBlue.planetRenderer; }
-            catch { return false; }
+            try
+            {
+                var controller = scrController.instance;
+                if (controller == null) return 0;
+                if (controller.planetRed != null && renderer == controller.planetRed.planetRenderer) return 1;
+                if (controller.planetBlue != null && renderer == controller.planetBlue.planetRenderer) return 2;
+            }
+            catch { }
+            return 0;
         }
 
         // Menus / title (no active level or editor) — where decorative planets like the
@@ -50,16 +68,22 @@ namespace RestrictedResourcePack
         // in a menu context, so custom-/main-level decorations are left alone.
         private static void ApplyBody(PlanetRenderer r, ref Color color)
         {
+            ApplyBody(r, GameplayPlanetRole(r), ref color);
+        }
+
+        private static void ApplyBody(PlanetRenderer r, int role, ref Color color)
+        {
             Settings s = Main.Settings;
             if (s == null || !s.PlanetColorOn) return;
+            RefreshPlanetColors(s);
 
-            string hex;
-            if (IsRed(r)) hex = s.Planet1Hex;
-            else if (IsBlue(r)) hex = s.Planet2Hex;
-            else if (IsMenuContext()) hex = color.r >= color.b ? s.Planet1Hex : s.Planet2Hex;
-            else return;
-
-            if (TryHex(hex, out Color c)) color = c;
+            if (role == 1 && cachedPlanet1Valid) color = cachedPlanet1Color;
+            else if (role == 2 && cachedPlanet2Valid) color = cachedPlanet2Color;
+            else if (role == 0 && IsMenuContext())
+            {
+                if (color.r >= color.b && cachedPlanet1Valid) color = cachedPlanet1Color;
+                else if (cachedPlanet2Valid) color = cachedPlanet2Color;
+            }
         }
 
         // ---- judgement text ("Perfect!" etc.) ----
@@ -110,8 +134,9 @@ namespace RestrictedResourcePack
             {
                 Settings s = Main.Settings;
                 if (s == null) return;
-                if (s.HideTail && (IsRed(__instance) || IsBlue(__instance))) { color = Transparent; return; }
-                ApplyBody(__instance, ref color);
+                int role = GameplayPlanetRole(__instance);
+                if (s.HideTail && role != 0) { color = Transparent; return; }
+                ApplyBody(__instance, role, ref color);
             }
         }
 
@@ -123,8 +148,9 @@ namespace RestrictedResourcePack
             {
                 Settings s = Main.Settings;
                 if (s == null) return;
-                if (s.HideRing && (IsRed(__instance) || IsBlue(__instance))) { color = Transparent; return; }
-                ApplyBody(__instance, ref color);
+                int role = GameplayPlanetRole(__instance);
+                if (s.HideRing && role != 0) { color = Transparent; return; }
+                ApplyBody(__instance, role, ref color);
             }
         }
 
@@ -136,17 +162,18 @@ namespace RestrictedResourcePack
             {
                 Settings s = Main.Settings;
                 if (s == null || !s.PlanetColorOn) return;
+                RefreshPlanetColors(s);
                 // Only change RGB; keep each image's current alpha so the game's
                 // fade-in/out (when the planet leaves the centre tile) still works.
-                if (TryHex(s.Planet1Hex, out Color fire))
+                if (cachedPlanet1Valid)
                 {
-                    Tint(__instance.fireImage, fire);
-                    Tint(__instance.fireLight, fire);
+                    Tint(__instance.fireImage, cachedPlanet1Color);
+                    Tint(__instance.fireLight, cachedPlanet1Color);
                 }
-                if (TryHex(s.Planet2Hex, out Color ice))
+                if (cachedPlanet2Valid)
                 {
-                    Tint(__instance.iceImage, ice);
-                    Tint(__instance.iceLight, ice);
+                    Tint(__instance.iceImage, cachedPlanet2Color);
+                    Tint(__instance.iceLight, cachedPlanet2Color);
                 }
             }
 
@@ -154,6 +181,7 @@ namespace RestrictedResourcePack
             {
                 if (!g) return;
                 Color c = g.color;
+                if (c.r == rgb.r && c.g == rgb.g && c.b == rgb.b) return;
                 g.color = new Color(rgb.r, rgb.g, rgb.b, c.a);
             }
         }

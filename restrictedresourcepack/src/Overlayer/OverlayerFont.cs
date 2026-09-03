@@ -17,8 +17,7 @@ namespace RestrictedResourcePack
 
         internal static TMP_FontAsset Get(string fileNameNoExt)
         {
-            if (cache.TryGetValue(fileNameNoExt, out TMP_FontAsset fa) && fa != null)
-                return fa;
+            if (cache.TryGetValue(fileNameNoExt, out TMP_FontAsset fa)) return fa;
 
             try
             {
@@ -26,18 +25,21 @@ namespace RestrictedResourcePack
                 if (path == null)
                 {
                     Log.Info("[overlayer] font not found: " + fileNameNoExt);
+                    cache[fileNameNoExt] = null;
                     return null;
                 }
 
                 Font font = new Font(path);
                 fa = TMP_FontAsset.CreateFontAsset(font);
-                if (fa != null) cache[fileNameNoExt] = fa;
+                cache[fileNameNoExt] = fa;
+                if (fa != null) return fa;
                 else Log.Info("[overlayer] failed to build TMP font from " + path);
                 return fa;
             }
             catch (System.Exception ex)
             {
                 Log.Info("[overlayer] font load error (" + fileNameNoExt + "): " + ex.Message);
+                cache[fileNameNoExt] = null;
                 return null;
             }
         }

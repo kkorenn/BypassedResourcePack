@@ -11,6 +11,8 @@ namespace BypassedResourcePack
         private static GUIStyle expandStyle;
         private static GUIStyle enableStyle;
         private static GUIStyle foldoutLabelStyle;
+        private static string planet1HexInput;
+        private static string planet2HexInput;
 
         internal static void OnGUI(UnityModManager.ModEntry modEntry)
         {
@@ -99,6 +101,28 @@ namespace BypassedResourcePack
             return val;
         }
 
+        private static bool PlanetHexField(string label, ref string input, ref string value)
+        {
+            if (input == null) input = value ?? "";
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(label, GUILayout.Width(120f));
+            input = GUILayout.TextField(input, GUILayout.Width(90f));
+
+            if (Settings.TryNormalizePlanetHex(input, out string normalized))
+            {
+                input = normalized;
+                value = normalized;
+                GUILayout.Label("#RRGGBB", GUILayout.Width(80f));
+                GUILayout.EndHorizontal();
+                return true;
+            }
+
+            GUILayout.Label("Use #RRGGBB", GUILayout.Width(100f));
+            GUILayout.EndHorizontal();
+            return false;
+        }
+
         // =====================================================================
         // Overlayer (collapsible, per-panel)
         // =====================================================================
@@ -145,8 +169,10 @@ namespace BypassedResourcePack
             GUILayout.Space(24f);
             GUILayout.BeginVertical();
 
-            p.X = NumField("X", p.X, 0f, 1f);
-            p.Y = NumField("Y", p.Y, 0f, 1f);
+            // Do not clamp coordinates to the visible 0..1 rectangle: a small off-screen
+            // offset is part of the shipped layout (for example, Judgements.Y is -0.01).
+            p.X = NumField("X", p.X, OverlayPanel.PositionMin, OverlayPanel.PositionMax);
+            p.Y = NumField("Y", p.Y, OverlayPanel.PositionMin, OverlayPanel.PositionMax);
             p.Scale = NumField("Scale", p.Scale, 0.2f, 2f);
 
             GUILayout.BeginHorizontal();
@@ -172,7 +198,17 @@ namespace BypassedResourcePack
             s.HideMissIndicators = GUILayout.Toggle(s.HideMissIndicators, "  Hide miss indicators");
             s.HideTail = GUILayout.Toggle(s.HideTail, "  Hide planet tail");
             s.HideRing = GUILayout.Toggle(s.HideRing, "  Hide planet ring");
-            s.PlanetColorOn = GUILayout.Toggle(s.PlanetColorOn, "  Recolor planets (1: #" + s.Planet1Hex + ", 2: #" + s.Planet2Hex + ")");
+            s.PlanetColorOn = GUILayout.Toggle(s.PlanetColorOn, "  Recolor planets");
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(24f);
+            GUILayout.BeginVertical();
+            bool planet1Valid = PlanetHexField("Planet 1 color", ref planet1HexInput, ref s.Planet1Hex);
+            bool planet2Valid = PlanetHexField("Planet 2 color", ref planet2HexInput, ref s.Planet2Hex);
+            if (!planet1Valid || !planet2Valid)
+                GUILayout.Label("Invalid edits keep the last valid color.");
+            GUILayout.EndVertical();
+            GUILayout.EndHorizontal();
         }
 
         // =====================================================================

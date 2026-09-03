@@ -28,6 +28,7 @@ namespace BypassedResourcePack
                 modEntry.Logger.Log("[warning] settings load failed, using defaults: " + ex.Message);
                 Settings = new Settings();
             }
+            Settings.NormalizePlanetColors();
 
             modEntry.OnToggle = OnToggle;
             modEntry.OnGUI = SettingsGui.OnGUI;
@@ -57,6 +58,7 @@ namespace BypassedResourcePack
 
         private static void OnUpdate(UnityModManager.ModEntry modEntry, float dt)
         {
+            if (!Enabled) return;
             OverlayerOverlay.Tick();
             DiscordAutoDeafen.Tick();
         }

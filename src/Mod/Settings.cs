@@ -7,10 +7,15 @@ namespace BypassedResourcePack
     [Serializable]
     public class OverlayPanel
     {
+        // Positions are screen fractions, but panels may intentionally sit a little beyond an
+        // edge.  Keep this in sync with the editor controls so defaults round-trip unchanged.
+        public const float PositionMin = -0.25f;
+        public const float PositionMax = 1.25f;
+
         public bool Enabled = true;
         public bool Expanded = false;
-        public float X = 0.5f;       // 0..1 screen fraction
-        public float Y = 0.5f;       // 0..1 screen fraction (from bottom)
+        public float X = 0.5f;       // screen fraction; may extend past either edge
+        public float Y = 0.5f;       // screen fraction from the bottom; may extend past either edge
         public float Scale = 1f;
         public string NotPlaying = "";
 
@@ -23,6 +28,9 @@ namespace BypassedResourcePack
 
     public class Settings : UnityModManager.ModSettings
     {
+        internal const string DefaultPlanet1Hex = "55FF55";
+        internal const string DefaultPlanet2Hex = "444444";
+
         // general
         public bool VerboseLogging = false;
 
@@ -54,8 +62,8 @@ namespace BypassedResourcePack
         public bool HideJudgmentText = true;     // "Perfect!" / "Pure Perfect!" popups
         public bool HideMissIndicators = true;
         public bool PlanetColorOn = true;
-        public string Planet1Hex = "55FF55";     // red planet body
-        public string Planet2Hex = "444444";     // blue planet body
+        public string Planet1Hex = DefaultPlanet1Hex; // red planet body
+        public string Planet2Hex = DefaultPlanet2Hex; // blue planet body
         public bool HideTail = true;
         public bool HideRing = true;
 
@@ -71,6 +79,38 @@ namespace BypassedResourcePack
         public float AutoDeafenAtPercent = 5f;        // deafen once progress >= this %
         public string DiscordClientId = "";           // user's own Discord app id (rpc.voice.write is owner+50-testers only)
         public string DiscordAccessToken = "";
+
+        internal void NormalizePlanetColors()
+        {
+            if (!TryNormalizePlanetHex(Planet1Hex, out Planet1Hex))
+                Planet1Hex = DefaultPlanet1Hex;
+            if (!TryNormalizePlanetHex(Planet2Hex, out Planet2Hex))
+                Planet2Hex = DefaultPlanet2Hex;
+        }
+
+        // Planet recoloring deliberately accepts only full RGB values, with an optional '#'.
+        // Keeping the stored value canonical makes both UI and Harmony callers safe.
+        internal static bool TryNormalizePlanetHex(string value, out string normalized)
+        {
+            normalized = null;
+            if (string.IsNullOrWhiteSpace(value)) return false;
+
+            value = value.Trim();
+            if (value.Length == 7 && value[0] == '#') value = value.Substring(1);
+            if (value.Length != 6) return false;
+
+            for (int i = 0; i < value.Length; i++)
+            {
+                char c = value[i];
+                bool isHex = (c >= '0' && c <= '9') ||
+                             (c >= 'a' && c <= 'f') ||
+                             (c >= 'A' && c <= 'F');
+                if (!isHex) return false;
+            }
+
+            normalized = value.ToUpperInvariant();
+            return true;
+        }
 
         public override void Save(UnityModManager.ModEntry modEntry)
         {

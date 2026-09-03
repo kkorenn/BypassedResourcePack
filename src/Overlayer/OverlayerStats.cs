@@ -16,6 +16,16 @@ namespace BypassedResourcePack
     internal static class OverlayerStats
     {
         private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
+        private static int revision;
+
+        // Incremented only when a value displayed by the overlay may have changed.
+        // Views use this to avoid rebuilding identical TMP markup every frame.
+        internal static int Revision => revision;
+
+        private static void MarkChanged()
+        {
+            unchecked { revision++; }
+        }
 
         // =====================================================================
         // Judgement counts. We keep our OWN per-run tally (fed by the
@@ -90,10 +100,16 @@ namespace BypassedResourcePack
             try { StartTile = scrController.instance != null ? scrController.instance.currentSeqID : 0; }
             catch { StartTile = 0; }
             ResetTabub(StartTile);
+            MarkChanged();
         }
 
         // Death — run no longer active so RunsToHere/Tabub register the end.
-        internal static void OnDeath() => IsStarted = false;
+        internal static void OnDeath()
+        {
+            if (!IsStarted) return;
+            IsStarted = false;
+            MarkChanged();
+        }
 
         // Scene transition (level exit / load). Clears the per-run tally so the next
         // attempt — including an official-level restart that the game does not zero —
@@ -103,6 +119,8 @@ namespace BypassedResourcePack
             Array.Clear(liveCounts, 0, liveCounts.Length);
             Combo = 0;
             IsStarted = false;
+            ResetTabub(0);
+            MarkChanged();
         }
 
         private static float comboPulseTime = -999f;
@@ -117,6 +135,7 @@ namespace BypassedResourcePack
             if (hit == HitMargin.Perfect || hit == HitMargin.Auto) Combo++;
             else Combo = 0;
             if (Combo != prev) { try { comboPulseTime = Time.realtimeSinceStartup; } catch { } }
+            MarkChanged();
         }
 
         // Combo number pop: 110% on change, easing back to 100% over 0.15s (ease-out cubic).
@@ -129,6 +148,19 @@ namespace BypassedResourcePack
             if (elapsed < 0f || elapsed >= dur) return 100f;
             float ease = 1f - Mathf.Pow(1f - elapsed / dur, 3f);
             return Mathf.Lerp(110f, 100f, ease);
+        }
+
+        internal static bool ComboAnimating
+        {
+            get
+            {
+                try
+                {
+                    float elapsed = Time.realtimeSinceStartup - comboPulseTime;
+                    return elapsed >= 0f && elapsed < 0.15f;
+                }
+                catch { return false; }
+            }
         }
 
         // =====================================================================
@@ -150,13 +182,19 @@ namespace BypassedResourcePack
         {
             try
             {
-                CurTile = controller != null ? controller.currentSeqID : 0;
+                int curTile = controller != null ? controller.currentSeqID : 0;
                 var lm = scrLevelMaker.instance;
                 // listFloors[0] is the starting tile, not a played tile — exclude it so
                 // tile counts read N/N and progress reaches 100% at the finish.
                 int floors = (lm != null && lm.listFloors != null) ? lm.listFloors.Count : 0;
-                TotalTile = floors > 0 ? floors - 1 : 0;
-                LeftTile = TotalTile - CurTile;
+                int totalTile = floors > 0 ? floors - 1 : 0;
+                int leftTile = totalTile - curTile;
+                if (CurTile == curTile && TotalTile == totalTile && LeftTile == leftTile) return;
+
+                CurTile = curTile;
+                TotalTile = totalTile;
+                LeftTile = leftTile;
+                MarkChanged();
             }
             catch { }
         }
@@ -173,21 +211,32 @@ namespace BypassedResourcePack
                 double speed = controller.planetarySystem != null ? controller.planetarySystem.speed : 1.0;
                 double pitch = conductor.song.pitch;
 
-                TileBpm = conductor.bpm * pitch * speed;
-                TileBpmWithoutPitch = conductor.bpm * speed;
+                double tileBpm = conductor.bpm * pitch * speed;
+                double tileBpmWithoutPitch = conductor.bpm * speed;
+                double curBpm;
+                double curBpmWithoutPitch;
 
                 if (floor.nextfloor != null)
                 {
                     double dt = floor.nextfloor.entryTime - floor.entryTime;
-                    double raw = dt != 0.0 ? 60.0 / dt : TileBpmWithoutPitch;
-                    CurBpmWithoutPitch = raw;
-                    CurBpm = raw * pitch;
+                    double raw = dt != 0.0 ? 60.0 / dt : tileBpmWithoutPitch;
+                    curBpmWithoutPitch = raw;
+                    curBpm = raw * pitch;
                 }
                 else
                 {
-                    CurBpm = TileBpm;
-                    CurBpmWithoutPitch = TileBpmWithoutPitch;
+                    curBpm = tileBpm;
+                    curBpmWithoutPitch = tileBpmWithoutPitch;
                 }
+
+                if (TileBpm == tileBpm && TileBpmWithoutPitch == tileBpmWithoutPitch &&
+                    CurBpm == curBpm && CurBpmWithoutPitch == curBpmWithoutPitch) return;
+
+                TileBpm = tileBpm;
+                TileBpmWithoutPitch = tileBpmWithoutPitch;
+                CurBpm = curBpm;
+                CurBpmWithoutPitch = curBpmWithoutPitch;
+                MarkChanged();
             }
             catch { }
         }
@@ -301,6 +350,7 @@ namespace BypassedResourcePack
         private static double tabStorageVal;
         private static int tabCurTile = 1;
         private static readonly List<int> tabKeys = new List<int>();
+        private static readonly System.Text.StringBuilder tabBuilder = new System.Text.StringBuilder(128);
         private static int tabCKeys;
         private static bool tabHasPlayableKey;
         private static int tabThreshold = 1;
@@ -366,9 +416,14 @@ namespace BypassedResourcePack
                 tabHasPlayableKey = false;
                 if (tabKeys.Count > 34)
                     tabKeys.RemoveRange(0, 8);
-            }
 
-            var sb = new System.Text.StringBuilder();
+                RebuildTabCache();
+            }
+        }
+
+        private static void RebuildTabCache()
+        {
+            tabBuilder.Clear();
             int n = Math.Min(tabKeys.Count, 34);
             for (int i = 0; i < n; i++)
             {
@@ -376,12 +431,13 @@ namespace BypassedResourcePack
                 {
                     int a = tabKeys[i - 2];
                     int b = tabKeys[i - 1];
-                    if (a > 8 || b > 8) sb.Append('[').Append(a).Append(' ').Append(b).Append("] ");
-                    else sb.Append(a).Append(b).Append(' ');
+                    if (a > 8 || b > 8) tabBuilder.Append('[').Append(a).Append(' ').Append(b).Append("] ");
+                    else tabBuilder.Append(a).Append(b).Append(' ');
                 }
-                if (i % 8 == 0 && i > 0) sb.Append('\n');
+                if (i % 8 == 0 && i > 0) tabBuilder.Append('\n');
             }
-            tabCache = sb.ToString();
+            tabCache = tabBuilder.ToString();
+            MarkChanged();
         }
 
         internal static string Tabub() => tabCache;
@@ -411,14 +467,26 @@ namespace BypassedResourcePack
             return ColorToHex(c);
         }
 
-        internal static string F(double v, int decimals) => v.ToString("F" + decimals, Inv);
+        internal static string F(double v, int decimals)
+        {
+            if (decimals == 2) return v.ToString("F2", Inv);
+            if (decimals == 3) return v.ToString("F3", Inv);
+            return v.ToString("F" + decimals, Inv);
+        }
 
         private static Color HexToColor(string hex)
         {
-            int r = Convert.ToInt32(hex.Substring(0, 2), 16);
-            int g = Convert.ToInt32(hex.Substring(2, 2), 16);
-            int b = Convert.ToInt32(hex.Substring(4, 2), 16);
+            int r = (HexNibble(hex[0]) << 4) | HexNibble(hex[1]);
+            int g = (HexNibble(hex[2]) << 4) | HexNibble(hex[3]);
+            int b = (HexNibble(hex[4]) << 4) | HexNibble(hex[5]);
             return new Color(r / 255f, g / 255f, b / 255f, 1f);
+        }
+
+        private static int HexNibble(char c)
+        {
+            if (c >= '0' && c <= '9') return c - '0';
+            if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+            return c - 'a' + 10;
         }
 
         private static string ColorToHex(Color c)
@@ -426,7 +494,7 @@ namespace BypassedResourcePack
             int r = Mathf.Clamp(Mathf.RoundToInt(c.r * 255f), 0, 255);
             int g = Mathf.Clamp(Mathf.RoundToInt(c.g * 255f), 0, 255);
             int b = Mathf.Clamp(Mathf.RoundToInt(c.b * 255f), 0, 255);
-            return r.ToString("X2", Inv) + g.ToString("X2", Inv) + b.ToString("X2", Inv);
+            return ((r << 16) | (g << 8) | b).ToString("X6", Inv);
         }
     }
 }

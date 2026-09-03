@@ -70,6 +70,14 @@ namespace BypassedResourcePack
             }
         }
 
+        // FailAction happens after the player's death animation begins.  Deafen state must be
+        // restored at the real death boundary as well, including paths that bypass FailAction.
+        [HarmonyPatch(typeof(scrPlayer), "Die")]
+        private static class PlayerDeathPatch
+        {
+            private static void Postfix() => DiscordAutoDeafen.OnRunEnded();
+        }
+
         [HarmonyPatch(typeof(scrController), "StartLoadingScene")]
         private static class StartLoadingScenePatch
         {
