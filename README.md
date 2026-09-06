@@ -1,5 +1,10 @@
 # BypassedResourcePack
 
+> [!NOTE]
+> This is the version of BypassedResourcePack originally made by Koren.
+> This does not have the changes made by BypassedChicken.
+> BypassedChicken's version of BypassedResourcePack is not released yet.
+
 Minimal ADOFAI Unity Mod Manager skeleton, based on the structure used by `KorenResourcePack`.
 
 - **Overlayer** — native C# overlay (no JS runtime) porting the customer's Overlayer tags + scripts. Six TMP panels laid out from `Texts.json`, rendered in Linotte, each toggleable in settings.
